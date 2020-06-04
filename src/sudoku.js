@@ -15,7 +15,7 @@ const checkUpdate = (nums, p) => {
   let j;
   //Check row
   for (i = row * 9; i < row * 9 + 9; i++) {
-    if (nums[i] !== 0) {
+    if (nums[i] !== null) {
       if (elts.includes(nums[i])) {
         return false;
       }
@@ -25,7 +25,7 @@ const checkUpdate = (nums, p) => {
   elts = [];
   //Check col
   for (i = col; i < 81; i = i + 9) {
-    if (nums[i] !== 0) {
+    if (nums[i] !== null) {
       if (elts.includes(nums[i])) {
         return false;
       }
@@ -34,9 +34,9 @@ const checkUpdate = (nums, p) => {
   }
   elts = [];
   //Check box
-  for (i = boxTop * 9; i < boxTop * 9 + 3; i = i + 9) {
+  for (i = boxTop * 9; i < boxTop * 9 + 27; i = i + 9) {
     for (j = boxLeft; j < boxLeft + 3; j++) {
-      if (nums[i + j] !== 0) {
+      if (nums[i + j] !== null) {
         if (elts.includes(nums[i + j])) {
           return false;
         }
@@ -47,22 +47,57 @@ const checkUpdate = (nums, p) => {
   return true;
 }
 
+// Outputs each step with callback function
+const bfCallbackHelper = (nums, givens, i, j, callback) => {
+  if (i > 80) {
+    callback(nums);
+    return nums;
+
+  } else if (i === givens[j]) {
+    //If the cell is given, skip
+    callback(nums);
+    return bfCallbackHelper(nums, givens, i + 1, j + 1, callback);
+
+  } else if (nums[i] !== 9) {
+    //At this point, we are going to mutate the board. Instead, we want to create a new one and modify that
+    const newNums = nums.slice();
+    //As long as the current number is not 9, we try the next number
+    newNums[i] = newNums[i] + 1;
+    callback(newNums);
+    if (!checkUpdate(newNums, i)) {
+      //If the new number does not work
+      return bfCallbackHelper(newNums, givens, i, j, callback);
+    }
+    const ret = bfCallbackHelper(newNums, givens, i + 1, j, callback);
+    if (ret === null) {
+      return bfCallbackHelper(newNums, givens, i, j, callback);
+    }
+    return ret;
+  } else {
+    return null;
+  }
+}
+
+// Outputs each step with a cakkback function
+const bfCallback = (board, callback) =>
+  bfCallbackHelper(board.nums, board.givens, 0, 0, callback);
+
 // For now, this assumes that the board has only the given numbers
 const bfHelper = (nums, givens, i, j) => {
   if (i > 80) {
     return nums;
-  }
-  //If the cell is given, skip
-  if (i === givens[j]) {
-    return bfHelper(nums, givens, i + 1, j + 1);
-  }
 
-  if (nums[i] !== 9) {
+  } else if (i === givens[j]) {
+    //If the cell is given, skip
+    return bfHelper(nums, givens, i + 1, j + 1);
+
+  } else if (nums[i] !== 9) {
     //At this point, we are going to mutate the board. Instead, we want to create a new one and modify that
     const newNums = nums.slice();
     //As long as the current number is not 9, we try the next number
     newNums[i] = newNums[i] + 1;
     if (!checkUpdate(newNums, i)) {
+      //If the new number does not work
       return bfHelper(newNums, givens, i, j);
     }
     const ret = bfHelper(newNums, givens, i + 1, j);
@@ -77,25 +112,14 @@ const bfHelper = (nums, givens, i, j) => {
 
 const bruteForce = board => bfHelper(board.nums, board.givens, 0, 0);
 
-const nums1 = [0, 0, 4, 3, 0, 0, 2, 0, 9, 0, 0, 5, 0, 0, 9, 0, 0, 1, 0, 7, 0, 0, 6, 0, 0, 4, 3, 0, 0, 6, 0, 0, 2, 0, 8, 7, 1, 9, 0, 0, 0, 7, 4, 0, 0, 0, 5, 0, 0, 8, 3, 0, 0, 0, 6, 0, 0, 0, 0, 0, 1, 0, 5, 0, 0, 3, 5, 0, 8, 6, 9, 0, 0, 4, 2, 9, 1, 0, 3, 0, 0];
 const makeGivens = nums => {
   const givens = [];
   for (let i = 0; i < nums.length; i++) {
-    if (nums[i] !== 0) {
+    if (nums[i] !== null) {
       givens.push(i);
     }
   }
   return givens;
 }
-const givens1 = makeGivens(nums1);
-const puzzle1 = { givens: givens1, nums: nums1 };
 
-const nums2 = [8, 6, 4, 3, 7, 1, 2, 5, 9, 3, 2, 5, 8, 4, 9, 7, 6, 1, 9, 7, 1, 2, 6, 5, 8, 4, 3, 4, 3, 6, 1, 9, 2, 5, 8, 7, 1, 9, 8, 6, 5, 7, 4, 3, 2, 2, 5, 7, 4, 8, 3, 9, 1, 6, 6, 8, 9, 7, 3, 4, 1, 2, 5, 7, 1, 3, 5, 2, 8, 6, 9, 4, 5, 4, 2, 9, 1, 6, 3, 7, 8];
-const givens2 = makeGivens(nums2);
-const puzzle2 = { givens: givens2, nums: nums2 };
-
-const nums3 = [0, 4, 0, 1, 0, 0, 0, 5, 0, 1, 0, 7, 0, 0, 3, 9, 6, 0, 5, 2, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 0, 0, 0, 9, 0, 6, 8, 0, 0, 8, 0, 3, 0, 5, 0, 6, 2, 0, 0, 9, 0, 0, 6, 0, 5, 4, 3, 6, 0, 0, 0, 8, 0, 7, 0, 0, 2, 5, 0, 0, 9, 7, 1, 0, 0];
-const givens3 = makeGivens(nums3);
-const puzzle3 = { givens: givens3, nums: nums3 };
-
-console.log(bruteForce(puzzle3))
+export { bruteForce, bfCallback, makeGivens };

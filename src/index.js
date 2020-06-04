@@ -2,12 +2,22 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
+import { makeGivens, bfCallback } from './sudoku.js';
+
+function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
+}
 
 function Square(props) {
   return (
     <td
       className={props.selected ? "square selected" : "square"}
-      onClick={props.onClick}>
+      onClick={props.onClick}
+      key={props.val}>
       {props.value}
     </td>
   );
@@ -30,7 +40,8 @@ class Board extends React.Component {
       <Square
         value={this.props.squares[i]}
         selected={this.props.selected === i}
-        onClick={() => this.props.squareClick(i)} />
+        onClick={() => this.props.squareClick(i)}
+        val={i} />
     );
   }
 
@@ -41,7 +52,7 @@ class Board extends React.Component {
       for (var j = 0; j < 9; j++) {
         row.push(this.renderSquare(i * 9 + j));
       }
-      rows.push(<tr>{row}</tr>);
+      rows.push(<tr key={i}>{row}</tr>);
     }
     return rows;
   }
@@ -49,10 +60,11 @@ class Board extends React.Component {
   render() {
     return (
       <div>
-        <table class="board">
-          {this.makeRows()}
+        <table className="board">
+          <tbody>
+            {this.makeRows()}
+          </tbody>
         </table>
-        <Undo onClick={this.props.undoClick} />
       </div>
     )
   }
@@ -63,11 +75,12 @@ class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [Array(9).fill(null)],
+      history: [Array(81).fill(null)],
       selected: null,
       stepNumber: 0,
     };
     this.keyIn = this.keyIn.bind(this);
+    //this.bfSolveCallback = this.keyIn.bind(this);
   }
 
   squareClick(i) {
@@ -77,6 +90,7 @@ class Game extends React.Component {
   }
 
   undoClick() {
+    console.log('undo');
     this.setState(state => {
       const newStep = state.stepNumber === 0 ? 0 : state.stepNumber - 1;
       return {
@@ -87,10 +101,14 @@ class Game extends React.Component {
   }
 
   keyIn(e) {
+    if (!e) {
+      return;
+    }
     if (!isNaN(e.key) && e.key !== '0') {
+      console.log('key in');
       this.setState(state => {
         const squares = state.history[state.stepNumber].slice();
-        squares[state.selected] = e.key;
+        squares[state.selected] = parseInt(e.key);
         return {
           history: state.history.concat([squares]),
           stepNumber: state.stepNumber + 1,
@@ -106,6 +124,23 @@ class Game extends React.Component {
         }
       });
     }
+  }
+
+  updateNums(newNums) {
+    //sleep(50);
+    this.setState(state => ({
+      history: state.history.concat([newNums]),
+      stepNumber: state.stepNumber + 1,
+    }));
+  }
+
+  bfSolveCallback() {
+    console.log('starting solve');
+    bfCallback({
+      nums: this.state.history[this.state.stepNumber],
+      givens: makeGivens(this.state.history[this.state.stepNumber]),
+    },
+      x => this.updateNums(x));
   }
 
   componentDidMount() {
@@ -124,9 +159,14 @@ class Game extends React.Component {
             squares={this.state.history[this.state.history.length - 1]}
             selected={this.state.selected}
             squareClick={(i) => this.squareClick(i)}
-            undoClick={() => this.undoClick()}
           />
         </div>
+        <Undo onClick={() => this.undoClick()} />
+        <button
+          className="solve"
+          onClick={() => this.bfSolveCallback()}>
+          Solve
+        </button>
       </div>
     )
   }

@@ -38,7 +38,6 @@ table {
   border-spacing: 0px;
   /*border:3px solid rgb(20,20,20);*/
   table-layout:fixed;
-  margin:1em auto;
 }
 
 td:nth-child(3n) {
