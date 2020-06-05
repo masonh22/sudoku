@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
-import { makeGivens, bfCallback } from './sudoku.js';
+import { makeGivens, bfCallback, bruteForce } from './sudoku.js';
 
 function sleep(milliseconds) {
   const date = Date.now();
@@ -143,6 +143,26 @@ class Game extends React.Component {
       x => this.updateNums(x));
   }
 
+  bfSolve() {
+    console.log('solving');
+    const solved = bruteForce({
+      nums: this.state.history[this.state.stepNumber],
+      givens: makeGivens(this.state.history[this.state.stepNumber]),
+    })
+    this.setState(state => ({
+      history: state.history.concat([solved]),
+      stepNumber: state.stepNumber + 1,
+    }));
+  }
+
+  clear() {
+    this.setState({
+      history: [Array(81).fill(null)],
+      selected: null,
+      stepNumber: 0,
+    });
+  }
+
   componentDidMount() {
     window.addEventListener("keydown", this.keyIn);
   }
@@ -163,8 +183,13 @@ class Game extends React.Component {
         </div>
         <Undo onClick={() => this.undoClick()} />
         <button
+          className="clear"
+          onClick={() => this.clear()}>
+          Clear
+        </button>
+        <button
           className="solve"
-          onClick={() => this.bfSolveCallback()}>
+          onClick={() => this.bfSolve()}>
           Solve
         </button>
       </div>
