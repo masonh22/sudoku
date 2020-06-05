@@ -47,30 +47,27 @@ const checkUpdate = (nums, p) => {
   return true;
 }
 
-// Outputs each step with callback function
-const bfCallbackHelper = (nums, givens, i, j, callback) => {
+// Add comment maybe
+const bfStepsHelper = (nums, givens, i, j, acc) => {
   if (i > 80) {
-    callback(nums);
-    return nums;
+    return acc;
 
   } else if (i === givens[j]) {
     //If the cell is given, skip
-    callback(nums);
-    return bfCallbackHelper(nums, givens, i + 1, j + 1, callback);
+    return bfStepsHelper(nums, givens, i + 1, j + 1, acc);
 
   } else if (nums[i] !== 9) {
-    //At this point, we are going to mutate the board. Instead, we want to create a new one and modify that
-    const newNums = nums.slice();
     //As long as the current number is not 9, we try the next number
+    const newNums = nums.slice()
     newNums[i] = newNums[i] + 1;
-    callback(newNums);
+    acc.push(newNums);
     if (!checkUpdate(newNums, i)) {
       //If the new number does not work
-      return bfCallbackHelper(newNums, givens, i, j, callback);
+      return bfStepsHelper(newNums, givens, i, j, acc);
     }
-    const ret = bfCallbackHelper(newNums, givens, i + 1, j, callback);
+    const ret = bfStepsHelper(newNums, givens, i + 1, j, acc);
     if (ret === null) {
-      return bfCallbackHelper(newNums, givens, i, j, callback);
+      return bfStepsHelper(newNums, givens, i, j, acc);
     }
     return ret;
   } else {
@@ -78,14 +75,16 @@ const bfCallbackHelper = (nums, givens, i, j, callback) => {
   }
 }
 
-// Outputs each step with a cakkback function
-const bfCallback = (board, callback) =>
-  bfCallbackHelper(board.nums, board.givens, 0, 0, callback);
+// Outputs an array containing each step in order
+const bfSteps = board => {
+  const sol = bfStepsHelper(board.nums, board.givens, 0, 0, []);
+  return sol.slice();
+}
 
 // For now, this assumes that the board has only the given numbers
 const bfHelper = (nums, givens, i, j) => {
   if (i > 80) {
-    return nums;
+    return [nums];
 
   } else if (i === givens[j]) {
     //If the cell is given, skip
@@ -99,12 +98,14 @@ const bfHelper = (nums, givens, i, j) => {
     if (!checkUpdate(newNums, i)) {
       //If the new number does not work
       return bfHelper(newNums, givens, i, j);
+    } else {
+      const ret = bfHelper(newNums, givens, i + 1, j);
+      if (ret === null) {
+        return bfHelper(newNums, givens, i, j);
+      } else {
+        return ret;
+      }
     }
-    const ret = bfHelper(newNums, givens, i + 1, j);
-    if (ret === null) {
-      return bfHelper(newNums, givens, i, j);
-    }
-    return ret;
   } else {
     return null;
   }
@@ -122,4 +123,4 @@ const makeGivens = nums => {
   return givens;
 }
 
-export { bruteForce, bfCallback, makeGivens };
+export { bruteForce, bfSteps, makeGivens };
