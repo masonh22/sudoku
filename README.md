@@ -1,3 +1,11 @@
+# Sudoku Web App
+
+This project is a web app for playing Sudoku. You can solve and verify the correctness of a random puzzle of a desired difficulty.
+
+This app can also has multiple algorithms built in to solve a given puzzle. This can be done instantly or you can watch the algorithm come to a solution step-by-step.
+
+This is still a work in progress.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
