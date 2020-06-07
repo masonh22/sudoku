@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import { makeGivens, bfSteps, bruteForce } from './sudoku.js';
+import { makeGivens, bfSteps, bruteForce } from './sudoku.ts';
 
 function Square(props) {
   return (
@@ -117,10 +117,8 @@ class Game extends React.Component {
 
   solve(algorithm) {
     console.log('solving');
-    const solved = algorithm({
-      nums: this.state.history[this.state.stepNumber],
-      givens: makeGivens(this.state.history[this.state.stepNumber]),
-    });
+    const solved = algorithm(this.state.history[this.state.stepNumber],
+      makeGivens(this.state.history[this.state.stepNumber]))
     this.setState(state => ({
       history: state.history.concat(solved),
       stepNumber: state.stepNumber + solved.length,
