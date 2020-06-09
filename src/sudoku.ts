@@ -80,10 +80,7 @@ const bfStepsHelper: (nums: number[], givens: Set<number>,
 
 // Outputs an array containing each step in order
 const bfSteps: (nums: number[], givens: Set<number>) => number[][] =
-  (nums, givens) => {
-    const sol = bfStepsHelper(nums, givens, 0, []);
-    return sol.slice();
-  }
+  (nums, givens) => bfStepsHelper(nums, givens, 0, [])
 
 // For now, this assumes that the board has only the given numbers
 const bfHelper: (nums: number[], givens: Set<number>, i: number)

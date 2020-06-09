@@ -194,6 +194,9 @@ class Game extends React.Component {
   bfSolveSteps() {
     const solved = bfSteps(this.state.history[this.state.stepNumber],
       this.state.givens)
+    if (solved === null) {
+      return;
+    }
     this.setState(state => ({
       history: state.history.concat(solved)
     }));
