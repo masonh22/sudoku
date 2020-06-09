@@ -191,9 +191,12 @@ class Game extends React.Component {
     }));
   }
 
-  //Still starts at step 0
   bfSolveSteps() {
-    this.solve(bfSteps);
+    const solved = bfSteps(this.state.history[this.state.stepNumber],
+      this.state.givens)
+    this.setState(state => ({
+      history: state.history.concat(solved)
+    }));
     setTimeout(() => {
       let i = 0;
       let playback = setInterval(() => {
