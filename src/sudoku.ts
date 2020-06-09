@@ -16,7 +16,7 @@ const checkUpdate: (nums: number[], p: number) => boolean =
     let j: number;
     //Check row
     for (i = row * 9; i < row * 9 + 9; i++) {
-      if (nums[i] !== null) {
+      if (nums[i] !== 0) {
         if (elts.includes(nums[i])) {
           return false;
         }
@@ -26,7 +26,7 @@ const checkUpdate: (nums: number[], p: number) => boolean =
     elts = [];
     //Check col
     for (i = col; i < 81; i = i + 9) {
-      if (nums[i] !== null) {
+      if (nums[i] !== 0) {
         if (elts.includes(nums[i])) {
           return false;
         }
@@ -37,7 +37,7 @@ const checkUpdate: (nums: number[], p: number) => boolean =
     //Check box
     for (i = boxTop * 9; i < boxTop * 9 + 27; i = i + 9) {
       for (j = boxLeft; j < boxLeft + 3; j++) {
-        if (nums[i + j] !== null) {
+        if (nums[i + j] !== 0) {
           if (elts.includes(nums[i + j])) {
             return false;
           }
@@ -49,15 +49,15 @@ const checkUpdate: (nums: number[], p: number) => boolean =
   }
 
 // Add comment maybe
-const bfStepsHelper: (nums: number[], givens: number[],
-  i: number, j: number, acc: number[][]) => number[][] =
-  (nums: number[], givens: number[], i: number, j: number, acc: number[][]) => {
+const bfStepsHelper: (nums: number[], givens: Set<number>,
+  i: number, acc: number[][]) => number[][] =
+  (nums, givens, i, acc: number[][]) => {
     if (i > 80) {
       return acc;
 
-    } else if (i === givens[j]) {
+    } else if (givens.has(i)) {
       //If the cell is given, skip
-      return bfStepsHelper(nums, givens, i + 1, j + 1, acc);
+      return bfStepsHelper(nums, givens, i + 1, acc);
 
     } else if (nums[i] !== 9) {
       //As long as the current number is not 9, we try the next number
@@ -66,11 +66,11 @@ const bfStepsHelper: (nums: number[], givens: number[],
       acc.push(newNums);
       if (!checkUpdate(newNums, i)) {
         //If the new number does not work
-        return bfStepsHelper(newNums, givens, i, j, acc);
+        return bfStepsHelper(newNums, givens, i, acc);
       }
-      const ret = bfStepsHelper(newNums, givens, i + 1, j, acc);
+      const ret = bfStepsHelper(newNums, givens, i + 1, acc);
       if (ret === null) {
-        return bfStepsHelper(newNums, givens, i, j, acc);
+        return bfStepsHelper(newNums, givens, i, acc);
       }
       return ret;
     } else {
@@ -79,22 +79,22 @@ const bfStepsHelper: (nums: number[], givens: number[],
   }
 
 // Outputs an array containing each step in order
-const bfSteps: (nums: number[], givens: number[]) => number[][] =
-  (nums: number[], givens: number[]) => {
-    const sol = bfStepsHelper(nums, givens, 0, 0, []);
+const bfSteps: (nums: number[], givens: Set<number>) => number[][] =
+  (nums, givens) => {
+    const sol = bfStepsHelper(nums, givens, 0, []);
     return sol.slice();
   }
 
 // For now, this assumes that the board has only the given numbers
-const bfHelper: (nums: number[], givens: number[], i: number, j: number)
+const bfHelper: (nums: number[], givens: Set<number>, i: number)
   => number[][] =
-  (nums: number[], givens: number[], i: number, j: number) => {
+  (nums, givens, i: number) => {
     if (i > 80) {
       return [nums];
 
-    } else if (i === givens[j]) {
+    } else if (givens.has(i)) {
       //If the cell is given, skip
-      return bfHelper(nums, givens, i + 1, j + 1);
+      return bfHelper(nums, givens, i + 1);
 
     } else if (nums[i] !== 9) {
       //At this point, we are going to mutate the board. Instead, we want to create a new one and modify that
@@ -103,11 +103,11 @@ const bfHelper: (nums: number[], givens: number[], i: number, j: number)
       newNums[i] = newNums[i] + 1;
       if (!checkUpdate(newNums, i)) {
         //If the new number does not work
-        return bfHelper(newNums, givens, i, j);
+        return bfHelper(newNums, givens, i);
       } else {
-        const ret = bfHelper(newNums, givens, i + 1, j);
+        const ret = bfHelper(newNums, givens, i + 1);
         if (ret === null) {
-          return bfHelper(newNums, givens, i, j);
+          return bfHelper(newNums, givens, i);
         } else {
           return ret;
         }
@@ -117,14 +117,14 @@ const bfHelper: (nums: number[], givens: number[], i: number, j: number)
     }
   }
 
-const bruteForce: (nums: number[], givens: number[]) => number[][] =
-  (nums: number[], givens: number[]) => bfHelper(nums, givens, 0, 0);
+const bruteForce: (nums: number[], givens: Set<number>) => number[][] =
+  (nums, givens) => bfHelper(nums, givens, 0);
 
-const makeGivens = (nums: number[]) => {
-  const givens = [];
+const makeGivens: (nums: number[]) => Set<number> = (nums: number[]) => {
+  const givens: Set<number> = new Set();
   for (let i = 0; i < nums.length; i++) {
-    if (nums[i] !== null) {
-      givens.push(i);
+    if (nums[i] !== 0) {
+      givens.add(i);
     }
   }
   return givens;

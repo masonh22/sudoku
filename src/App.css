@@ -1,31 +1,4 @@
-
-td {
-  text-align:center;
-  vertical-align:center;
-  font-size:30px;
-  border: 1px solid rgb(30, 30, 30);
-  background-color:rgb(40,40,40);
-  overflow:hidden;
-  width:50px;
-  height:50px;
-}
-
-td:hover {
-  background-color:rgb(60,60,60);
-}
-
-td.selected {
-  background-color:rgb(80,80,80);
-}
-
-table {
-  width:450px;
-  height:450px;
-  border-spacing: 0px;
-  /*border:3px solid rgb(20,20,20);*/
-  table-layout:fixed;
-}
-
+/* borders*/
 td:nth-child(3n) {
   border-right:1px solid rgb(20,20,20);
 }
@@ -56,4 +29,68 @@ td:first-child {
 
 tr:first-child td {
   border-top:none;
+}
+/* end borders */
+
+/* cell styling */
+td:hover {
+  background-color:rgb(75,75,75);
+}
+
+td.square-selected {
+  background-color:rgb(90,90,90);
+}
+
+td.given {
+  color:black;
+}
+
+td.incorrect {
+  color: red;
+}
+/* end cell styling*/
+
+/*
+div.no-show {
+  visibility:hidden;
+}*/
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-content:middle;
+  height:100%;
+}
+.cell {
+  flex: 0 0 33.3%;
+  font-size:small;
+  font-weight:normal;
+  text-align:center;
+  color:black;
+}
+
+.show {
+  visibility:hidden;
+}
+
+td {
+  text-align:center;
+  vertical-align:center;
+  font-size:xx-large;
+  font-weight:bold;
+  border: 1px solid rgb(30, 30, 30);
+  background-color:rgb(60,60,60);
+  color:rgb(30,30,30);
+  overflow-y:hidden;
+  overflow-x:hidden;
+  width:75px;
+  height:75px;
+}
+
+table {
+  table-layout:fixed;
+  width:675px;
+  height:675px;
+  border-spacing: 0px;
 }
