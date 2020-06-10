@@ -117,7 +117,7 @@ class Game extends React.Component {
       solution: puzzles[0].solution,
       givens: makeGivens(puzzles[0].puzzle),
       notes: notes,
-      selected: null,
+      selected: 0,
       stepNumber: 0,
       noteMode: false,
     };
@@ -145,7 +145,7 @@ class Game extends React.Component {
     if (!e) {
       return;
     }
-    if (!isNaN(e.key) && e.key !== '0' && this.state.history[0][this.state.selected] === 0) {//Update this later
+    if (!isNaN(parseInt(e.key)) && e.code !== 'Digit0' && this.state.history[0][this.state.selected] === 0) {//Update this later
       console.log('key in');
       this.setState(state => {
         if (state.noteMode) {
@@ -172,6 +172,44 @@ class Game extends React.Component {
           stepNumber: state.stepNumber + 1,
         }
       });
+    } else if (e.key === 'ArrowRight') {
+      this.setState(state => {
+        if (state.selected % 9 !== 8) {
+          return {
+            selected: state.selected + 1,
+          }
+        }
+        return {};
+      });
+    } else if (e.key === 'ArrowLeft') {
+      this.setState(state => {
+        if (state.selected % 9 !== 0) {
+          return {
+            selected: state.selected - 1,
+          }
+        }
+        return {};
+      });
+    } else if (e.key === 'ArrowUp') {
+      this.setState(state => {
+        if (state.selected / 9 !== 0) {
+          return {
+            selected: state.selected - 9,
+          }
+        }
+        return {};
+      });
+    } else if (e.key === 'ArrowDown') {
+      this.setState(state => {
+        if (state.selected / 9 !== 8) {
+          return {
+            selected: state.selected + 9,
+          }
+        }
+        return {};
+      });
+    } else if (e.code === 'Space') {
+      this.notesClick();
     }
   }
 

@@ -6,6 +6,18 @@ This app can also has multiple algorithms built in to solve a given puzzle. This
 
 This is still a work in progress.
 
+TODO:
+- More efficient history that can store notes
+- Add more efficient sudoku algorithm
+- Mobile support
+  + On screen buttons
+  + board sizing in css
+- Random puzzles
+  + Enter a lot of puzzles using a database (if possible on github) or some other way
+  + Puzzle difficulty
+  + Remember puzzles a user completed
+- Enter your own puzzle
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
