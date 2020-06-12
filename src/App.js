@@ -1,21 +1,7 @@
 import React from 'react';
 import './App.css';
 import { makeGivens, bfSteps, bruteForce } from './sudoku.ts';
-
-const puzzles = [
-  {
-    puzzle: [0, 0, 4, 3, 0, 0, 2, 0, 9, 0, 0, 5, 0, 0, 9, 0, 0, 1, 0, 7, 0, 0, 6, 0, 0, 4, 3, 0, 0, 6, 0, 0, 2, 0, 8, 7, 1, 9, 0, 0, 0, 7, 4, 0, 0, 0, 5, 0, 0, 8, 3, 0, 0, 0, 6, 0, 0, 0, 0, 0, 1, 0, 5, 0, 0, 3, 5, 0, 8, 6, 9, 0, 0, 4, 2, 9, 1, 0, 3, 0, 0],
-    solution: [8, 6, 4, 3, 7, 1, 2, 5, 9, 3, 2, 5, 8, 4, 9, 7, 6, 1, 9, 7, 1, 2, 6, 5, 8, 4, 3, 4, 3, 6, 1, 9, 2, 5, 8, 7, 1, 9, 8, 6, 5, 7, 4, 3, 2, 2, 5, 7, 4, 8, 3, 9, 1, 6, 6, 8, 9, 7, 3, 4, 1, 2, 5, 7, 1, 3, 5, 2, 8, 6, 9, 4, 5, 4, 2, 9, 1, 6, 3, 7, 8],
-  },
-  {
-    puzzle: [0, 4, 0, 1, 0, 0, 0, 5, 0, 1, 0, 7, 0, 0, 3, 9, 6, 0, 5, 2, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 0, 0, 0, 9, 0, 6, 8, 0, 0, 8, 0, 3, 0, 5, 0, 6, 2, 0, 0, 9, 0, 0, 6, 0, 5, 4, 3, 6, 0, 0, 0, 8, 0, 7, 0, 0, 2, 5, 0, 0, 9, 7, 1, 0, 0],
-    solution: [3, 4, 6, 1, 7, 9, 2, 5, 8, 1, 8, 7, 5, 2, 3, 9, 6, 4, 5, 2, 9, 6, 4, 8, 3, 7, 1, 9, 6, 5, 8, 3, 2, 4, 1, 7, 4, 7, 2, 9, 1, 6, 8, 3, 5, 8, 1, 3, 7, 5, 4, 6, 2, 9, 7, 9, 8, 2, 6, 1, 5, 4, 3, 6, 3, 1, 4, 8, 5, 7, 9, 2, 2, 5, 4, 3, 9, 7, 1, 8, 6],
-  },
-  {
-    puzzle: Array(81).fill(0),
-    solution: Array(81).fill(0),
-  }
-];
+import { puzzles } from './data.js';
 
 const classNames = obj => {
   let str = '';
@@ -112,16 +98,25 @@ class Game extends React.Component {
     for (let i = 0; i < 81; i++) {
       notes[i] = Array(9).fill(false);
     }
+    const choice = Math.floor(Math.random() * puzzles.length);
     this.state = {
-      history: [puzzles[0].puzzle],
-      solution: puzzles[0].solution,
-      givens: makeGivens(puzzles[0].puzzle),
-      notes: notes,
+      history: [puzzles[choice].puzzle],
+      solution: puzzles[choice].solution,
+      givens: makeGivens(puzzles[choice].puzzle),
+      notes: this.emptyNotes(),
       selected: 0,
       stepNumber: 0,
       noteMode: false,
     };
     this.keyIn = this.keyIn.bind(this);
+  }
+
+  emptyNotes() {
+    let notes = Array(81).fill(null);
+    for (let i = 0; i < 81; i++) {
+      notes[i] = Array(9).fill(false);
+    }
+    return notes;
   }
 
   squareClick(i) {
@@ -192,7 +187,7 @@ class Game extends React.Component {
       });
     } else if (e.key === 'ArrowUp') {
       this.setState(state => {
-        if (state.selected / 9 !== 0) {
+        if (Math.floor(state.selected / 9) !== 0) {
           return {
             selected: state.selected - 9,
           }
@@ -201,7 +196,7 @@ class Game extends React.Component {
       });
     } else if (e.key === 'ArrowDown') {
       this.setState(state => {
-        if (state.selected / 9 !== 8) {
+        if (Math.floor(state.selected / 9) !== 8) {
           return {
             selected: state.selected + 9,
           }
@@ -252,9 +247,31 @@ class Game extends React.Component {
     }, 100)
   }
 
-  clear() {
+  reset() {
     this.setState(state => ({
       history: state.history.slice(0, 1),
+      notes: this.emptyNotes(),
+      selected: 0,
+      stepNumber: 0,
+    }));
+  }
+
+  randomPuzzle() {
+    const choice = Math.floor(Math.random() * puzzles.length);
+    this.setState(state => ({
+      history: [puzzles[choice].puzzle],
+      solution: puzzles[choice].solution,
+      givens: makeGivens(puzzles[choice].puzzle),
+      notes: this.emptyNotes(),
+      selected: 0,
+      stepNumber: 0,
+    }))
+  }
+
+  clear() {
+    this.setState(state => ({
+      history: [Array(81).fill(0)],
+      notes: this.emptyNotes(),
       selected: null,
       stepNumber: 0,
     }));
@@ -287,9 +304,9 @@ class Game extends React.Component {
           Undo
         </button>
         <button
-          className="clear"
-          onClick={() => this.clear()}>
-          Clear
+          className="reset"
+          onClick={() => this.reset()}>
+          Reset
         </button>
         <button
           className="notes"
@@ -300,6 +317,16 @@ class Game extends React.Component {
           className="solve"
           onClick={() => this.bfSolveSteps()}>
           Solve
+        </button>
+        <button
+          className="random"
+          onClick={() => this.randomPuzzle()}>
+          Random Puzzle
+        </button>
+        <button
+          className="clear"
+          onClick={() => this.clear()}>
+          Clear
         </button>
       </div>
     );
