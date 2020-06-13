@@ -85,6 +85,7 @@ const bfStepsHelper: (nums: number[], givens: Set<number>,
       }
       return ret;
     } else {
+      acc.push({ notes: false, index: i, num: 0, old: 9 });
       return null;
     }
   }
