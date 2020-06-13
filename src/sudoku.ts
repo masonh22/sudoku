@@ -4,6 +4,18 @@
  * numbers and another that represents the values in each position
  */
 
+interface step {
+  notes: boolean,
+  index: number,
+  num: number,
+  old: number,
+}
+
+interface solution {
+  solution: number[],
+  steps: Array<step>,
+}
+
 //Checks whether a board is still correct after updating at position [i]
 const checkUpdate: (nums: number[], p: number) => boolean =
   (nums: number[], p: number) => {
@@ -50,10 +62,9 @@ const checkUpdate: (nums: number[], p: number) => boolean =
 
 // Add comment maybe
 const bfStepsHelper: (nums: number[], givens: Set<number>,
-  i: number, acc: number[][]) => number[][] =
-  (nums, givens, i, acc: number[][]) => {
+  i: number, acc: Array<step>) => solution = (nums, givens, i, acc) => {
     if (i > 80) {
-      return acc;
+      return { solution: nums, steps: acc };
 
     } else if (givens.has(i)) {
       //If the cell is given, skip
@@ -63,7 +74,7 @@ const bfStepsHelper: (nums: number[], givens: Set<number>,
       //As long as the current number is not 9, we try the next number
       const newNums = nums.slice()
       newNums[i] = newNums[i] + 1;
-      acc.push(newNums);
+      acc.push({ notes: false, index: i, num: newNums[i], old: newNums[i] - 1 })
       if (!checkUpdate(newNums, i)) {
         //If the new number does not work
         return bfStepsHelper(newNums, givens, i, acc);
@@ -79,13 +90,12 @@ const bfStepsHelper: (nums: number[], givens: Set<number>,
   }
 
 // Outputs an array containing each step in order
-const bfSteps: (nums: number[], givens: Set<number>) => number[][] =
+const bfSteps: (nums: number[], givens: Set<number>) => solution =
   (nums, givens) => bfStepsHelper(nums, givens, 0, [])
 
 // For now, this assumes that the board has only the given numbers
 const bfHelper: (nums: number[], givens: Set<number>, i: number)
-  => number[][] =
-  (nums, givens, i: number) => {
+  => number[][] = (nums, givens, i: number) => {
     if (i > 80) {
       return [nums];
 
@@ -127,4 +137,4 @@ const makeGivens: (nums: number[]) => Set<number> = (nums: number[]) => {
   return givens;
 }
 
-export { bruteForce, bfSteps, makeGivens };
+export { bruteForce, bfSteps, makeGivens, checkUpdate };

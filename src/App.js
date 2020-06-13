@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import { makeGivens, bfSteps, bruteForce } from './sudoku.ts';
+import { makeGivens, bfSteps, bruteForce, checkUpdate } from './sudoku.ts';
 import { puzzles } from './data.js';
 
 const classNames = obj => {
@@ -99,10 +99,15 @@ class Game extends React.Component {
       notes[i] = Array(9).fill(false);
     }
     const choice = Math.floor(Math.random() * puzzles.length);
+    /**
+     * History is represented as list of objects {notes: true/false, index: index, num: current number, old: old number}
+     */
     this.state = {
-      history: [puzzles[choice].puzzle],
-      solution: puzzles[choice].solution,
+      history: [],
+      puzzle: puzzles[choice].puzzle.slice(),
       givens: makeGivens(puzzles[choice].puzzle),
+      solution: puzzles[choice].solution,
+      puzzleNum: choice,
       notes: this.emptyNotes(),
       selected: 0,
       stepNumber: 0,
@@ -126,12 +131,20 @@ class Game extends React.Component {
   }
 
   undoClick() {
-    console.log('undo');
     this.setState(state => {
-      const newStep = state.stepNumber === 0 ? 0 : state.stepNumber - 1;
+      if (state.stepNumber === 0) return;
+      const newStep = state.stepNumber - 1;
+      const hist = state.history[newStep];
+      if (hist.notes) {
+        state.notes[hist.index][hist.num - 1] = !state.notes[hist.index][hist.num - 1];
+      } else {
+        if (state.puzzleNum < 0 && hist.old === 0) state.givens.delete(hist.index);
+        console.log(hist.old);
+        state.puzzle[hist.index] = hist.old;
+      }
       return {
         stepNumber: newStep,
-        history: state.history.slice(0, newStep + 1),
+        history: state.history.slice(0, newStep),
       }
     });
   }
@@ -139,72 +152,65 @@ class Game extends React.Component {
   keyIn(e) {
     if (!e) {
       return;
-    }
-    if (!isNaN(parseInt(e.key)) && e.code !== 'Digit0' && this.state.history[0][this.state.selected] === 0) {//Update this later
-      console.log('key in');
-      this.setState(state => {
-        if (state.noteMode) {
-          const notes = state.notes.slice();
-          notes[state.selected][parseInt(e.key) - 1] = !notes[state.selected][parseInt(e.key) - 1]
-          return {
-            notes: notes,
-          }
-        } else {
-          const squares = state.history[state.stepNumber].slice();
-          squares[state.selected] = parseInt(e.key);
-          return {
-            history: state.history.concat([squares]),
-            stepNumber: state.stepNumber + 1,
-          };
-        }
-      });
-    } else if (e.key === 'Backspace') {
-      this.setState(state => {
-        const squares = state.history[state.stepNumber].slice();
-        squares[state.selected] = 0;
-        return {
-          history: state.history.concat([squares]),
-          stepNumber: state.stepNumber + 1,
-        }
-      });
-    } else if (e.key === 'ArrowRight') {
-      this.setState(state => {
-        if (state.selected % 9 !== 8) {
-          return {
-            selected: state.selected + 1,
-          }
-        }
-        return {};
-      });
-    } else if (e.key === 'ArrowLeft') {
-      this.setState(state => {
-        if (state.selected % 9 !== 0) {
-          return {
-            selected: state.selected - 1,
-          }
-        }
-        return {};
-      });
-    } else if (e.key === 'ArrowUp') {
-      this.setState(state => {
-        if (Math.floor(state.selected / 9) !== 0) {
-          return {
-            selected: state.selected - 9,
-          }
-        }
-        return {};
-      });
-    } else if (e.key === 'ArrowDown') {
-      this.setState(state => {
-        if (Math.floor(state.selected / 9) !== 8) {
-          return {
-            selected: state.selected + 9,
-          }
-        }
-        return {};
-      });
     } else if (e.code === 'Space') {
       this.notesClick();
+    } else {
+      this.setState(state => {
+        if (!isNaN(parseInt(e.key)) && e.code !== 'Digit0' && !state.givens.has(state.selected)) {
+          const num = parseInt(e.key);
+          if (state.noteMode) {
+            state.notes[state.selected][num - 1] = !state.notes[state.selected][num - 1];
+            return {
+              history: state.history.concat([{ notes: true, index: state.selected, num: num, }]),
+              stepNumber: state.stepNumber + 1,
+            };
+          } else {
+            if (state.puzzleNum < 0) state.givens.add(state.selected);
+            const old = state.puzzle[state.selected];
+            state.puzzle[state.selected] = num;
+            return {
+              history: state.history.concat([{ notes: false, index: state.selected, num: num, old: old }]),
+              stepNumber: state.stepNumber + 1,
+            };
+          }
+        } else if (e.key === 'Backspace') {
+          if (state.puzzleNum < 0) state.givens.delete(state.selected);
+          const old = state.puzzle[state.selected];
+          state.puzzle[state.selected] = 0;
+          return {
+            history: state.history.concat([{ notes: false, index: state.selected, num: 0, old: old }]),
+            stepNumber: state.stepNumber + 1,
+          };
+        } else if (e.key === 'ArrowRight') {
+          if (state.selected % 9 !== 8) {
+            return {
+              selected: state.selected + 1,
+            }
+          }
+          return {};
+        } else if (e.key === 'ArrowLeft') {
+          if (state.selected % 9 !== 0) {
+            return {
+              selected: state.selected - 1,
+            }
+          }
+          return {};
+        } else if (e.key === 'ArrowUp') {
+          if (Math.floor(state.selected / 9) !== 0) {
+            return {
+              selected: state.selected - 9,
+            }
+          }
+          return {};
+        } else if (e.key === 'ArrowDown') {
+          if (Math.floor(state.selected / 9) !== 8) {
+            return {
+              selected: state.selected + 9,
+            }
+          }
+          return {};
+        }
+      });
     }
   }
 
@@ -214,67 +220,81 @@ class Game extends React.Component {
     }));
   }
 
-  solve(algorithm) {
-    console.log('solving');
-    const solved = algorithm(this.state.history[this.state.stepNumber],
-      this.state.givens)
-    this.setState(state => ({
-      history: state.history.concat(solved),
-      stepNumber: state.stepNumber + solved.length,
-    }));
-  }
-
   bfSolveSteps() {
-    const solved = bfSteps(this.state.history[this.state.stepNumber],
+    const solved = bfSteps(this.state.puzzle.slice(),
       this.state.givens)
     if (solved === null) {
       return;
     }
     this.setState(state => ({
-      history: state.history.concat(solved)
+      history: state.history.concat(solved.steps),
+      solution: solved.solution,
     }));
     setTimeout(() => {
       let i = 0;
       let playback = setInterval(() => {
-        this.setState({
-          stepNumber: i,
+        this.setState(state => {
+          const history = state.history[i];
+          state.puzzle[history.index] = history.num;
+          return {
+            stepNumber: i + 1,
+          }
         });
         i++;
         if (i === this.state.history.length) {
           clearInterval(playback);
         }
       }, 1)
-    }, 100)
+    }, 100);
   }
 
   reset() {
-    this.setState(state => ({
-      history: state.history.slice(0, 1),
-      notes: this.emptyNotes(),
-      selected: 0,
-      stepNumber: 0,
-    }));
+    this.setState(state => {
+      if (state.puzzleNum < 0) {
+        this.clear();
+      } else {
+        return {
+          history: [],
+          puzzle: puzzles[state.puzzleNum].puzzle.slice(),
+          notes: this.emptyNotes(),
+          selected: 0,
+          stepNumber: 0,
+          noteMode: false,
+        }
+      }
+    });
   }
 
   randomPuzzle() {
     const choice = Math.floor(Math.random() * puzzles.length);
     this.setState(state => ({
-      history: [puzzles[choice].puzzle],
-      solution: puzzles[choice].solution,
+      history: [],
+      puzzle: puzzles[choice].puzzle.slice(),
       givens: makeGivens(puzzles[choice].puzzle),
+      solution: puzzles[choice].solution,
+      puzzleNum: choice,
       notes: this.emptyNotes(),
       selected: 0,
       stepNumber: 0,
+      noteMode: false,
     }))
   }
 
   clear() {
-    this.setState(state => ({
-      history: [Array(81).fill(0)],
-      notes: this.emptyNotes(),
-      selected: null,
-      stepNumber: 0,
-    }));
+    this.setState(state => {
+      const puzzle = Array(81).fill(0);
+      return {
+        history: [],
+        puzzle: puzzle,
+        givens: new Set(),
+        solution: puzzle,
+        puzzleNum: -1,
+        notes: this.emptyNotes(),
+        selected: null,
+        stepNumber: 0,
+        noteMode: false,
+      }
+    });
   }
 
   componentDidMount() {
@@ -290,8 +310,10 @@ class Game extends React.Component {
       <div className="game">
         <div className="game-board">
           <Board
-            squares={this.state.history[this.state.stepNumber]}
-            solution={this.state.solution}
+            squares={this.state.puzzle}
+            solution={
+              this.state.puzzleNum === -1 ? this.state.solution :
+                puzzles[this.state.puzzleNum].solution}
             givens={this.state.givens}
             selected={this.state.selected}
             notes={this.state.notes}
