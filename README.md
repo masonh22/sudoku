@@ -7,13 +7,14 @@ This app can also has multiple algorithms built in to solve a given puzzle. This
 This is still a work in progress.
 
 TODO:
-- Add more efficient sudoku algorithm
+- Add Algorithm X
+  + Dropdown algorithm selector (or another algorithm selector)
 - Mobile support
   + On screen buttons
   + board sizing in css
 - Random puzzles
   + Enter a lot of puzzles using a database (if possible on github) or some other way
-  + Puzzle difficulty
+  + Puzzle difficulty - find other datasets
   + Remember puzzles a user completed
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

@@ -174,13 +174,15 @@ class Game extends React.Component {
             };
           }
         } else if (e.key === 'Backspace') {
-          if (state.puzzleNum < 0) state.givens.delete(state.selected);
-          const old = state.puzzle[state.selected];
-          state.puzzle[state.selected] = 0;
-          return {
-            history: state.history.concat([{ notes: false, index: state.selected, num: 0, old: old }]),
-            stepNumber: state.stepNumber + 1,
-          };
+          if (state.puzzleNum < 0 || !state.givens.has(state.selected)) {
+            state.givens.delete(state.selected);
+            const old = state.puzzle[state.selected];
+            state.puzzle[state.selected] = 0;
+            return {
+              history: state.history.concat([{ notes: false, index: state.selected, num: 0, old: old }]),
+              stepNumber: state.stepNumber + 1,
+            };
+          }
         } else if (e.key === 'ArrowRight') {
           if (state.selected % 9 !== 8) {
             return {
@@ -226,9 +228,11 @@ class Game extends React.Component {
     if (solved === null) {
       return;
     }
+    console.log('steps: ' + solved.steps.length);
     this.setState(state => ({
       history: state.history.concat(solved.steps),
       solution: solved.solution,
+      selected: null,
     }));
     setTimeout(() => {
       let i = 0;
