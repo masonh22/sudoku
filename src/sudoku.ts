@@ -61,14 +61,14 @@ const checkUpdate: (nums: number[], p: number) => boolean =
   }
 
 // Add comment maybe
-const bfStepsHelper: (nums: number[], givens: Set<number>,
+const bfHelper: (nums: number[], givens: Set<number>,
   i: number, acc: Array<step>) => solution = (nums, givens, i, acc) => {
     if (i > 80) {
       return { solution: nums, steps: acc };
 
     } else if (givens.has(i)) {
       //If the cell is given, skip
-      return bfStepsHelper(nums, givens, i + 1, acc);
+      return bfHelper(nums, givens, i + 1, acc);
 
     } else if (nums[i] !== 9) {
       //As long as the current number is not 9, we try the next number
@@ -77,11 +77,11 @@ const bfStepsHelper: (nums: number[], givens: Set<number>,
       acc.push({ notes: false, index: i, num: newNums[i], old: newNums[i] - 1 })
       if (!checkUpdate(newNums, i)) {
         //If the new number does not work
-        return bfStepsHelper(newNums, givens, i, acc);
+        return bfHelper(newNums, givens, i, acc);
       }
-      const ret = bfStepsHelper(newNums, givens, i + 1, acc);
+      const ret = bfHelper(newNums, givens, i + 1, acc);
       if (ret === null) {
-        return bfStepsHelper(newNums, givens, i, acc);
+        return bfHelper(newNums, givens, i, acc);
       }
       return ret;
     } else {
@@ -91,42 +91,129 @@ const bfStepsHelper: (nums: number[], givens: Set<number>,
   }
 
 // Outputs an array containing each step in order
-const bfSteps: (nums: number[], givens: Set<number>) => solution =
-  (nums, givens) => bfStepsHelper(nums, givens, 0, [])
+const bruteForce: (nums: number[], givens: Set<number>) => solution =
+  (nums, givens) => bfHelper(nums, givens, 0, [])
 
-// For now, this assumes that the board has only the given numbers
-const bfHelper: (nums: number[], givens: Set<number>, i: number)
-  => number[][] = (nums, givens, i: number) => {
-    if (i > 80) {
-      return [nums];
 
-    } else if (givens.has(i)) {
-      //If the cell is given, skip
-      return bfHelper(nums, givens, i + 1);
+const subtract: (s1: Set<any>, s2: Set<any>) => Set<any> = (s1, s2) => {
+  const diff = new Set(s1);
+  for (let e of s2) {
+    diff.delete(e);
+  }
+  return diff;
+}
 
-    } else if (nums[i] !== 9) {
-      //At this point, we are going to mutate the board. Instead, we want to create a new one and modify that
-      const newNums = nums.slice();
-      //As long as the current number is not 9, we try the next number
-      newNums[i] = newNums[i] + 1;
-      if (!checkUpdate(newNums, i)) {
-        //If the new number does not work
-        return bfHelper(newNums, givens, i);
-      } else {
-        const ret = bfHelper(newNums, givens, i + 1);
-        if (ret === null) {
-          return bfHelper(newNums, givens, i);
-        } else {
-          return ret;
-        }
+const union: (s1: Set<any>, s2: Set<any>) => Set<any> = (s1, s2) => {
+  let un = new Set(s1);
+  for (let e of s2) {
+    un.add(e);
+  }
+  return un;
+}
+
+const makeNotes: (nums: number[]) => Set<number>[] = nums => {
+  const sets: Set<number>[] = Array(27);
+  const notes: Set<number>[] = Array(81);
+  for (let i = 0; i < 27; i++) {
+    sets[i] = new Set();
+  }
+  const possibleNums = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  for (let i = 0; i < 81; i++) {
+    const row = Math.floor(i / 9);
+    const col = i % 9;
+    const box = 3 * Math.floor(row / 3) + Math.floor(col / 3);
+    sets[row].add(nums[i])
+    sets[9 + col].add(nums[i])
+    sets[18 + box].add(nums[i])
+  }
+  for (let i = 0; i < 81; i++) {
+    if (nums[i] === 0) {
+      const row = Math.floor(i / 9);
+      const col = i % 9;
+      const box = 3 * Math.floor(row / 3) + Math.floor(col / 3);
+      notes[i] = subtract(possibleNums, union(sets[row], union(sets[9 + col], sets[18 + box])));
+    }
+  }
+  return notes;
+}
+
+const updateNotes: (notes: Set<number>[], p: number, val: number) => void =
+  (notes, p, val) => {
+    let i: number;
+    let j: number;
+    const row = Math.floor(p / 9);
+    const col = p % 9;
+    const boxTop = row < 3 ? 0 : row < 6 ? 3 : 6;
+    const boxLeft = col < 3 ? 0 : col < 6 ? 3 : 6;
+    //Iter row
+    for (i = row * 9; i < row * 9 + 9; i++) {
+      if (notes[i]) notes[i].delete(val);
+    }
+    //Iter col
+    for (i = col; i < 81; i = i + 9) {
+      if (notes[i]) notes[i].delete(val);
+    }
+    //Iter box
+    for (i = boxTop * 9; i < boxTop * 9 + 27; i = i + 9) {
+      for (j = boxLeft; j < boxLeft + 3; j++) {
+        if (notes[i + j]) notes[i + j].delete(val);
       }
-    } else {
-      return null;
     }
   }
 
-const bruteForce: (nums: number[], givens: Set<number>) => number[][] =
-  (nums, givens) => bfHelper(nums, givens, 0);
+const copySetArray: (l: Set<any>[]) => Set<any>[] = l => {
+  let r: Set<any>[] = Array(81).fill(null);
+  for (let i = 0; i < l.length; i++) {
+    if (l[i]) r[i] = new Set(l[i]);
+  }
+  return r;
+}
+
+const smartFill: (nums: number[], notes: Set<number>[], acc: Array<step>) => solution = (nums, notes, acc) => {
+  let i = 0;
+  let smallest = [-1, 10];
+  while (i < 81 && (!notes[i] || notes[i].size !== 1)) {
+    if (notes[i]) smallest = smallest[1] > notes[i].size ? [i, notes[i].size] : smallest;
+    if (notes[i] && notes[i].size === 0) {
+      return null;
+    }
+    i++;
+  }
+  if (!notes[i] || notes[i].size !== 1) {
+    if (smallest[0] > -1) {
+      i = smallest[0];
+      const newNums = nums.slice();
+      const val = notes[i].keys().next().value;
+      acc.push({ notes: false, index: i, num: val, old: newNums[i] });
+      newNums[i] = val;
+      const newNotes = copySetArray(notes);
+      newNotes[i] = null;
+      updateNotes(newNotes, i, val);
+      const ret = smartFill(newNums, newNotes, acc);
+      if (ret === null) {
+        notes[i].delete(val);
+        return smartFill(nums, notes, acc);
+      }
+      return ret;
+    }
+    return { solution: nums, steps: acc };
+  }
+  nums[i] = notes[i].keys().next().value;
+  acc.push({ notes: false, index: i, num: nums[i], old: 0 });
+  notes[i] = null;
+  updateNotes(notes, i, nums[i]);
+  const ret = smartFill(nums, notes, acc);
+  if (ret === null) {
+    acc.push({ notes: false, index: i, num: 0, old: null });
+  }
+  return ret;
+}
+
+const smartBruteForce: (nums: number[], givens: Set<number>) => solution =
+  (nums, givens) => {
+    const notes = makeNotes(nums);
+    return smartFill(nums, notes, []);
+  }
 
 const makeGivens: (nums: number[]) => Set<number> = (nums: number[]) => {
   const givens: Set<number> = new Set();
@@ -138,4 +225,4 @@ const makeGivens: (nums: number[]) => Set<number> = (nums: number[]) => {
   return givens;
 }
 
-export { bruteForce, bfSteps, makeGivens, checkUpdate };
+export { bruteForce, makeGivens, checkUpdate, smartBruteForce };

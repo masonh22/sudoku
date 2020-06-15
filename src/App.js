@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import { makeGivens, bfSteps, bruteForce, checkUpdate } from './sudoku.ts';
+import { makeGivens, bruteForce, checkUpdate, smartBruteForce } from './sudoku.ts';
 import { puzzles } from './data.js';
 
 const classNames = obj => {
@@ -220,8 +220,8 @@ class Game extends React.Component {
     }));
   }
 
-  bfSolveSteps() {
-    const solved = bfSteps(this.state.puzzle.slice(),
+  solveSteps(algorithm) {
+    const solved = algorithm(this.state.puzzle.slice(),
       this.state.givens)
     if (solved === null) {
       return;
@@ -337,7 +337,7 @@ class Game extends React.Component {
         </button>
         <button
           className="solve"
-          onClick={() => this.bfSolveSteps()}>
+          onClick={() => this.solveSteps(smartBruteForce)}>
           Solve
         </button>
         <button
