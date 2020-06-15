@@ -23,37 +23,25 @@ const checkUpdate: (nums: number[], p: number) => boolean =
     const col = p % 9;
     const boxTop = row < 3 ? 0 : row < 6 ? 3 : 6;
     const boxLeft = col < 3 ? 0 : col < 6 ? 3 : 6;
-    let elts: number[] = [];
     let i: number;
     let j: number;
     //Check row
     for (i = row * 9; i < row * 9 + 9; i++) {
-      if (nums[i] !== 0) {
-        if (elts.includes(nums[i])) {
-          return false;
-        }
-        elts.push(nums[i]);
+      if (nums[i] === nums[p] && i !== p) {
+        return false;
       }
     }
-    elts = [];
     //Check col
     for (i = col; i < 81; i = i + 9) {
-      if (nums[i] !== 0) {
-        if (elts.includes(nums[i])) {
-          return false;
-        }
-        elts.push(nums[i]);
+      if (nums[i] === nums[p] && i !== p) {
+        return false;
       }
     }
-    elts = [];
     //Check box
     for (i = boxTop * 9; i < boxTop * 9 + 27; i = i + 9) {
       for (j = boxLeft; j < boxLeft + 3; j++) {
-        if (nums[i + j] !== 0) {
-          if (elts.includes(nums[i + j])) {
-            return false;
-          }
-          elts.push(nums[i + j]);
+        if (nums[i + j] === nums[p] && i + j !== p) {
+          return false;
         }
       }
     }

@@ -124,28 +124,39 @@ class Game extends React.Component {
     return notes;
   }
 
+  solveSteps(algorithm) {
+    const solved = algorithm(this.state.puzzle.slice(),
+      this.state.givens)
+    if (solved === null) {
+      return;
+    }
+    console.log('steps: ' + solved.steps.length);
+    this.setState(state => ({
+      history: state.history.concat(solved.steps),
+      solution: solved.solution,
+      selected: null,
+    }));
+    setTimeout(() => {
+      let i = 0;
+      let playback = setInterval(() => {
+        this.setState(state => {
+          const history = state.history[i];
+          state.puzzle[history.index] = history.num;
+          return {
+            stepNumber: i + 1,
+          }
+        });
+        i++;
+        if (i === this.state.history.length) {
+          clearInterval(playback);
+        }
+      }, 1)
+    }, 100);
+  }
+
   squareClick(i) {
     this.setState({
       selected: i,
-    });
-  }
-
-  undoClick() {
-    this.setState(state => {
-      if (state.stepNumber === 0) return;
-      const newStep = state.stepNumber - 1;
-      const hist = state.history[newStep];
-      if (hist.notes) {
-        state.notes[hist.index][hist.num - 1] = !state.notes[hist.index][hist.num - 1];
-      } else {
-        if (state.puzzleNum < 0 && hist.old === 0) state.givens.delete(hist.index);
-        console.log(hist.old);
-        state.puzzle[hist.index] = hist.old;
-      }
-      return {
-        stepNumber: newStep,
-        history: state.history.slice(0, newStep),
-      }
     });
   }
 
@@ -216,40 +227,23 @@ class Game extends React.Component {
     }
   }
 
-  notesClick() {
-    this.setState(state => ({
-      noteMode: !state.noteMode
-    }));
-  }
-
-  solveSteps(algorithm) {
-    const solved = algorithm(this.state.puzzle.slice(),
-      this.state.givens)
-    if (solved === null) {
-      return;
-    }
-    console.log('steps: ' + solved.steps.length);
-    this.setState(state => ({
-      history: state.history.concat(solved.steps),
-      solution: solved.solution,
-      selected: null,
-    }));
-    setTimeout(() => {
-      let i = 0;
-      let playback = setInterval(() => {
-        this.setState(state => {
-          const history = state.history[i];
-          state.puzzle[history.index] = history.num;
-          return {
-            stepNumber: i + 1,
-          }
-        });
-        i++;
-        if (i === this.state.history.length) {
-          clearInterval(playback);
-        }
-      }, 1)
-    }, 100);
+  undoClick() {
+    this.setState(state => {
+      if (state.stepNumber === 0) return;
+      const newStep = state.stepNumber - 1;
+      const hist = state.history[newStep];
+      if (hist.notes) {
+        state.notes[hist.index][hist.num - 1] = !state.notes[hist.index][hist.num - 1];
+      } else {
+        if (state.puzzleNum < 0 && hist.old === 0) state.givens.delete(hist.index);
+        console.log(hist.old);
+        state.puzzle[hist.index] = hist.old;
+      }
+      return {
+        stepNumber: newStep,
+        history: state.history.slice(0, newStep),
+      }
+    });
   }
 
   reset() {
@@ -267,6 +261,12 @@ class Game extends React.Component {
         }
       }
     });
+  }
+
+  notesClick() {
+    this.setState(state => ({
+      noteMode: !state.noteMode
+    }));
   }
 
   randomPuzzle() {
@@ -324,36 +324,43 @@ class Game extends React.Component {
             squareClick={(i) => this.squareClick(i)}
           />
         </div>
-        <button
-          className="undo"
-          onClick={() => this.undoClick()}>
-          Undo
+        <div className="buttons">
+          <button
+            className="undo"
+            onClick={() => this.undoClick()}>
+            Undo
         </button>
-        <button
-          className="reset"
-          onClick={() => this.reset()}>
-          Reset
+          <button
+            className="reset"
+            onClick={() => this.reset()}>
+            Reset
         </button>
-        <button
-          className="notes"
-          onClick={() => this.notesClick()}>
-          Notes
+          <button
+            className="notes"
+            onClick={() => this.notesClick()}>
+            Notes
         </button>
-        <button
-          className="solve"
-          onClick={() => this.solveSteps(smartBruteForce)}>
-          Solve
+          <button
+            className="random"
+            onClick={() => this.randomPuzzle()}>
+            Random Puzzle
         </button>
-        <button
-          className="random"
-          onClick={() => this.randomPuzzle()}>
-          Random Puzzle
+          <button
+            className="clear"
+            onClick={() => this.clear()}>
+            Clear
         </button>
-        <button
-          className="clear"
-          onClick={() => this.clear()}>
-          Clear
+          <button
+            className="solvebf"
+            onClick={() => this.solveSteps(bruteForce)}>
+            Solve Brute Force
         </button>
+          <button
+            className="solvesmart"
+            onClick={() => this.solveSteps(smartBruteForce)}>
+            Smart Brute Force
+        </button>
+        </div>
       </div>
     );
   }
