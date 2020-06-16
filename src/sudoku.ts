@@ -16,7 +16,11 @@ interface solution {
   steps: Array<step>,
 }
 
-//Checks whether a board is still correct after updating at position [i]
+/**
+ * Checks whether a board is still correct after updating at position [p]
+ * @param nums Sudoku board
+ * @param p Updated value index
+ */
 const checkUpdate: (nums: number[], p: number) => boolean =
   (nums: number[], p: number) => {
     const row = Math.floor(p / 9);
@@ -48,7 +52,6 @@ const checkUpdate: (nums: number[], p: number) => boolean =
     return true;
   }
 
-// Add comment maybe
 const bfHelper: (nums: number[], givens: Set<number>,
   i: number, acc: Array<step>) => solution = (nums, givens, i, acc) => {
     if (i > 80) {
@@ -78,11 +81,19 @@ const bfHelper: (nums: number[], givens: Set<number>,
     }
   }
 
-// Outputs an array containing each step in order
+/**
+ * Solves sudoku board [nums] using a brute force method
+ * @param nums Sudoku board
+ * @param givens Indices of hints on [nums]
+ */
 const bruteForce: (nums: number[], givens: Set<number>) => solution =
   (nums, givens) => bfHelper(nums, givens, 0, [])
 
-
+/**
+ * Set subtraction [s1] \ [s2]
+ * @param s1 First set
+ * @param s2 Second set
+ */
 const subtract: (s1: Set<any>, s2: Set<any>) => Set<any> = (s1, s2) => {
   const diff = new Set(s1);
   for (let e of s2) {
@@ -91,6 +102,11 @@ const subtract: (s1: Set<any>, s2: Set<any>) => Set<any> = (s1, s2) => {
   return diff;
 }
 
+/**
+ * Set union [s1] U [s2]
+ * @param s1 First set
+ * @param s2 Second set
+ */
 const union: (s1: Set<any>, s2: Set<any>) => Set<any> = (s1, s2) => {
   let un = new Set(s1);
   for (let e of s2) {
@@ -99,20 +115,26 @@ const union: (s1: Set<any>, s2: Set<any>) => Set<any> = (s1, s2) => {
   return un;
 }
 
+/**
+ * Generates notes for each space on the sudoku board [nums]
+ * @param nums Sudoku board
+ */
 const makeNotes: (nums: number[]) => Set<number>[] = nums => {
   const sets: Set<number>[] = Array(27);
   const notes: Set<number>[] = Array(81);
   for (let i = 0; i < 27; i++) {
     sets[i] = new Set();
   }
-  const possibleNums = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  const possibleNums = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
   for (let i = 0; i < 81; i++) {
     const row = Math.floor(i / 9);
     const col = i % 9;
     const box = 3 * Math.floor(row / 3) + Math.floor(col / 3);
-    sets[row].add(nums[i])
-    sets[9 + col].add(nums[i])
-    sets[18 + box].add(nums[i])
+    if (nums[i] !== 0) {
+      sets[row].add(nums[i])
+      sets[9 + col].add(nums[i])
+      sets[18 + box].add(nums[i])
+    }
   }
   for (let i = 0; i < 81; i++) {
     if (nums[i] === 0) {
@@ -125,6 +147,12 @@ const makeNotes: (nums: number[]) => Set<number>[] = nums => {
   return notes;
 }
 
+/**
+ * Updates [notes] after inserting [val] at index [p]
+ * @param notes Current notes for a sudoku board
+ * @param p Index of changed value
+ * @param val Value of changed value
+ */
 const updateNotes: (notes: Set<number>[], p: number, val: number) => void =
   (notes, p, val) => {
     let i: number;
@@ -149,6 +177,10 @@ const updateNotes: (notes: Set<number>[], p: number, val: number) => void =
     }
   }
 
+/**
+ * Copies an array of sets
+ * @param l Array of sets
+ */
 const copySetArray: (l: Set<any>[]) => Set<any>[] = l => {
   let r: Set<any>[] = Array(81).fill(null);
   for (let i = 0; i < l.length; i++) {
@@ -197,12 +229,21 @@ const smartFill: (nums: number[], notes: Set<number>[], acc: Array<step>) => sol
   return ret;
 }
 
+/**
+ * Solves sudoku board [nums] using a smarter brute force algorithm
+ * @param nums Sudoku board
+ * @param givens Indices of hints on [nums]
+ */
 const smartBruteForce: (nums: number[], givens: Set<number>) => solution =
   (nums, givens) => {
     const notes = makeNotes(nums);
     return smartFill(nums, notes, []);
   }
 
+/**
+ * Generates given hints for new sudoku board [nums]
+ * @param nums Sudoku board
+ */
 const makeGivens: (nums: number[]) => Set<number> = (nums: number[]) => {
   const givens: Set<number> = new Set();
   for (let i = 0; i < nums.length; i++) {

@@ -249,7 +249,20 @@ class Game extends React.Component {
   reset() {
     this.setState(state => {
       if (state.puzzleNum < 0) {
-        this.clear();
+        const puzzle = Array(81).fill(0);
+        for (let i of state.givens.keys()) {
+          puzzle[i] = state.puzzle[i];
+        }
+        return {
+          history: [],
+          puzzle: puzzle,
+          solution: puzzle,
+          puzzleNum: -1,
+          notes: this.emptyNotes(),
+          selected: 0,
+          stepNumber: 0,
+          noteMode: false,
+        }
       } else {
         return {
           history: [],
@@ -294,7 +307,7 @@ class Game extends React.Component {
         solution: puzzle,
         puzzleNum: -1,
         notes: this.emptyNotes(),
-        selected: null,
+        selected: 0,
         stepNumber: 0,
         noteMode: false,
       }
