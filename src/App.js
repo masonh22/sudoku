@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import { makeGivens, bruteForce, checkUpdate, smartBruteForce } from './sudoku.ts';
+import { makeGivens, bruteForce, /*checkUpdate,*/ smartBruteForce } from './sudoku.ts';
 import { puzzles } from './data.js';
 
 const classNames = obj => {
@@ -100,7 +100,7 @@ class Game extends React.Component {
     }
     const choice = Math.floor(Math.random() * puzzles.length);
     /**
-     * History is represented as list of objects {notes: true/false, index: index, num: current number, old: old number}
+     * History is represented as list of objects {notes: true/false, index: index, num: current number/ list (notes), old: old number}
      */
     this.state = {
       history: [],
@@ -172,7 +172,7 @@ class Game extends React.Component {
           if (state.noteMode) {
             state.notes[state.selected][num - 1] = !state.notes[state.selected][num - 1];
             return {
-              history: state.history.concat([{ notes: true, index: state.selected, num: num, }]),
+              history: state.history.concat([{ notes: true, index: state.selected, num: [num], }]),
               stepNumber: state.stepNumber + 1,
             };
           } else {
@@ -185,14 +185,26 @@ class Game extends React.Component {
             };
           }
         } else if (e.key === 'Backspace') {
-          if (state.puzzleNum < 0 || !state.givens.has(state.selected)) {
-            state.givens.delete(state.selected);
-            const old = state.puzzle[state.selected];
-            state.puzzle[state.selected] = 0;
-            return {
-              history: state.history.concat([{ notes: false, index: state.selected, num: 0, old: old }]),
-              stepNumber: state.stepNumber + 1,
-            };
+          if (!state.givens.has(state.selected) || state.puzzleNum < 0) {
+            if (state.puzzle[state.selected] === 0) {
+              const nums = [];
+              for (let i = 0; i < 9; i++) {
+                if (state.notes[state.selected][i]) nums.push(i + 1);
+              }
+              state.notes[state.selected] = Array(9).fill(false);
+              return {
+                history: state.history.concat([{ notes: true, index: state.selected, num: nums, }]),
+                stepNumber: state.stepNumber + 1,
+              };
+            } else {
+              state.givens.delete(state.selected);
+              const old = state.puzzle[state.selected];
+              state.puzzle[state.selected] = 0;
+              return {
+                history: state.history.concat([{ notes: false, index: state.selected, num: 0, old: old }]),
+                stepNumber: state.stepNumber + 1,
+              };
+            }
           }
         } else if (e.key === 'ArrowRight') {
           if (state.selected % 9 !== 8) {
@@ -233,7 +245,9 @@ class Game extends React.Component {
       const newStep = state.stepNumber - 1;
       const hist = state.history[newStep];
       if (hist.notes) {
-        state.notes[hist.index][hist.num - 1] = !state.notes[hist.index][hist.num - 1];
+        for (let i of hist.num) {
+          state.notes[hist.index][i - 1] = !state.notes[hist.index][i - 1];
+        }
       } else {
         if (state.puzzleNum < 0 && hist.old === 0) state.givens.delete(hist.index);
         console.log(hist.old);
