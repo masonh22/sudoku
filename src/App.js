@@ -387,7 +387,7 @@ class Game extends React.Component {
           <button
             className="clear"
             onClick={() => this.clear()}>
-            Clear
+            Custom Puzzle
         </button>
           <button
             className="solvebf"
