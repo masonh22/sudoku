@@ -21,6 +21,7 @@
 *.csv
 *.py
 *.txt
+sudoku_parsed.json
 
 npm-debug.log*
 yarn-debug.log*

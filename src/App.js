@@ -1,7 +1,9 @@
 import React from 'react';
 import './App.css';
 import { makeGivens, bruteForce, /*checkUpdate,*/ smartBruteForce } from './sudoku.ts';
-import { puzzles } from './data.js';
+import firebase from './firebase.js';
+
+const database = firebase.database();
 
 const classNames = obj => {
   let str = '';
@@ -98,15 +100,24 @@ class Game extends React.Component {
     for (let i = 0; i < 81; i++) {
       notes[i] = Array(9).fill(false);
     }
-    const choice = Math.floor(Math.random() * puzzles.length);
+    const choice = Math.floor(Math.random() * 10000);
+    database.ref('puzzle' + choice).once('value').then(data => {
+      this.setState({
+        originalPuzzle: data.val().puzzle,
+        puzzle: data.val().puzzle.slice(),
+        givens: makeGivens(data.val().puzzle),
+        solution: data.val().solution,
+      })
+    });
+
     /**
      * History is represented as list of objects {notes: true/false, index: index, num: current number/ list (notes), old: old number}
      */
     this.state = {
       history: [],
-      puzzle: puzzles[choice].puzzle.slice(),
-      givens: makeGivens(puzzles[choice].puzzle),
-      solution: puzzles[choice].solution,
+      puzzle: Array(81).fill(0),
+      givens: new Set(),
+      solution: Array(81).fill(0),
       puzzleNum: choice,
       notes: this.emptyNotes(),
       selected: 0,
@@ -280,7 +291,7 @@ class Game extends React.Component {
       } else {
         return {
           history: [],
-          puzzle: puzzles[state.puzzleNum].puzzle.slice(),
+          puzzle: state.originalPuzzle.slice(),
           notes: this.emptyNotes(),
           selected: 0,
           stepNumber: 0,
@@ -297,18 +308,21 @@ class Game extends React.Component {
   }
 
   randomPuzzle() {
-    const choice = Math.floor(Math.random() * puzzles.length);
-    this.setState(state => ({
-      history: [],
-      puzzle: puzzles[choice].puzzle.slice(),
-      givens: makeGivens(puzzles[choice].puzzle),
-      solution: puzzles[choice].solution,
-      puzzleNum: choice,
-      notes: this.emptyNotes(),
-      selected: 0,
-      stepNumber: 0,
-      noteMode: false,
-    }))
+    const choice = Math.floor(Math.random() * 10000);
+    database.ref('puzzle' + choice).once('value').then(data => {
+      this.setState({
+        history: [],
+        originalPuzzle: data.val().puzzle,
+        puzzle: data.val().puzzle.slice(),
+        givens: makeGivens(data.val().puzzle),
+        solution: data.val().solution,
+        puzzleNum: choice,
+        notes: this.emptyNotes(),
+        selected: 0,
+        stepNumber: 0,
+        noteMode: false,
+      })
+    });
   }
 
   clear() {
@@ -342,9 +356,7 @@ class Game extends React.Component {
         <div className="game-board">
           <Board
             squares={this.state.puzzle}
-            solution={
-              this.state.puzzleNum === -1 ? this.state.solution :
-                puzzles[this.state.puzzleNum].solution}
+            solution={this.state.solution}
             givens={this.state.givens}
             selected={this.state.selected}
             notes={this.state.notes}
