@@ -267,6 +267,7 @@ class Game extends React.Component {
       return {
         stepNumber: newStep,
         history: state.history.slice(0, newStep),
+        selected: hist.index,
       }
     });
   }
