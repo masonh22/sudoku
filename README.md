@@ -14,8 +14,6 @@ This algorithm is similar to brute force, except instead of working methodically
 
 # TODO:
 
-- Add Algorithm X
-  + Dropdown algorithm selector (or another algorithm selector)
 - Mobile support
   + On screen buttons
   + Board sizing in css
