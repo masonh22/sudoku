@@ -21,3 +21,5 @@ This algorithm is similar to brute force, except instead of working methodically
   + Puzzle difficulty - find other datasets
   + Remember puzzles a user completed
 - Display steps taken to solve puzzle
+- Add a feature to update notes after filling in a square
+  + Also add a feature to automatically fill a square if there is only one note in the square (this will cause "chained" updates that would probably be fun and cool)
